@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crimata</title>
+  <link rel="stylesheet" href="/marketing/main.css" />
+</head>
+<body>
+  <header>
+    <div class="logo">Crimata</div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Your digital hub,<br>ready in seconds.</h1>
+      <p>Get your own space on the web — custom domain, your content, fully managed.</p>
+      <div class="pricing">$10 / month</div>
+      <button id="checkout-btn">Get Started</button>
+      <p class="sub">No setup fees. Cancel anytime.</p>
+    </section>
+  </main>
+
+  <script>
+    document.getElementById('checkout-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('checkout-btn')
+      btn.disabled = true
+      btn.textContent = 'Redirecting...'
+      try {
+        const res = await fetch('/api/checkout/create-session', { method: 'POST' })
+        const data = await res.json()
+        window.location.href = data.url
+      } catch {
+        btn.disabled = false
+        btn.textContent = 'Get Started'
+        alert('Something went wrong. Please try again.')
+      }
+    })
+  </script>
+</body>
+</html>
