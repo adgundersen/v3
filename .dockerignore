@@ -1,0 +1,10 @@
+.env
+.env.dev
+.env.prod
+__pycache__/
+*.pyc
+*.pyo
+env/
+.git/
+.DS_Store
+static/uploads/
