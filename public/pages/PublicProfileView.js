@@ -55,7 +55,7 @@ export default {
       <nav-bar />
       <div class="page" v-if="profile">
         <div class="profile-header">
-          <img v-if="profile.avatar_filename" :src="imgUrl(profile.avatar_filename)" class="profile-avatar" alt="Avatar" />
+          <img v-if="profile.avatar_url" :src="imgUrl(profile.avatar_url)" class="profile-avatar" alt="Avatar" />
           <div v-else class="profile-avatar-placeholder">👤</div>
           <div class="profile-info">
             <h1>{{ profile.name || 'No name set' }}</h1>
@@ -73,7 +73,7 @@ export default {
 
         <div class="post-grid" v-if="posts.length">
           <div v-for="post in posts" :key="post.id" class="post-thumb" @click="openPost(post)">
-            <img v-if="post.images.length" :src="imgUrl(post.images[0].filename)" :alt="post.caption" />
+            <img v-if="post.images.length" :src="imgUrl(post.images[0].url)" :alt="post.caption" />
             <div v-else class="post-thumb post-thumb-empty">📷</div>
             <span v-if="post.images.length > 1" class="multi-badge">⧉</span>
           </div>
@@ -87,7 +87,7 @@ export default {
         <div class="modal">
           <div class="modal-media">
             <template v-if="activePost.images.length">
-              <img :src="imgUrl(activePost.images[carouselIndex].filename)" :alt="activePost.caption" />
+              <img :src="imgUrl(activePost.images[carouselIndex].url)" :alt="activePost.caption" />
               <button v-if="activePost.images.length > 1" class="carousel-btn carousel-prev" @click="prevImage">‹</button>
               <button v-if="activePost.images.length > 1" class="carousel-btn carousel-next" @click="nextImage">›</button>
               <div v-if="activePost.images.length > 1" class="carousel-dots">

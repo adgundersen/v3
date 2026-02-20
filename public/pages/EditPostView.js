@@ -130,7 +130,7 @@ export default {
           <h2 style="font-size:16px; font-weight:700; margin-bottom:16px;">Images</h2>
           <div class="image-grid" v-if="post.images.length">
             <div v-for="(img, i) in post.images" :key="img.id" class="image-item">
-              <img :src="imgUrl(img.filename)" :alt="'Image ' + (i+1)" />
+              <img :src="imgUrl(img.url)" :alt="'Image ' + (i+1)" />
               <span class="img-order">{{ i + 1 }}</span>
               <div class="img-actions">
                 <button class="btn btn-secondary btn-sm" @click="moveImage(img.id, -1)" :disabled="i === 0">←</button>

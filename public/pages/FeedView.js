@@ -50,7 +50,7 @@ export default {
 
         <div v-for="post in posts" :key="post.id" class="card post-card">
           <div class="post-card-inner">
-            <img v-if="post.images.length" :src="imgUrl(post.images[0].filename)" class="post-card-thumb" :alt="post.caption" />
+            <img v-if="post.images.length" :src="imgUrl(post.images[0].url)" class="post-card-thumb" :alt="post.caption" />
             <div v-else class="post-card-thumb-empty">📷</div>
             <div class="post-card-info">
               <div class="post-card-caption">{{ post.caption || '(no caption)' }}</div>

@@ -1,9 +1,9 @@
 import uuid
-import shutil
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 
+import storage
 from database import db
 from models import Profile
 from schemas import ProfileRead, ProfileUpdate
@@ -11,7 +11,6 @@ from auth import get_current_user
 
 router = APIRouter(prefix="/api/profile", tags=["profile"])
 
-UPLOAD_DIR = Path(__file__).parent.parent / "static" / "uploads"
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 
 
@@ -21,6 +20,7 @@ def _profile_to_dict(profile: Profile) -> dict:
         "name": profile.name,
         "bio": profile.bio,
         "avatar_filename": profile.avatar_filename,
+        "avatar_url": storage.public_url(profile.avatar_filename),
         "links": profile.links or [],
     }
 
@@ -68,15 +68,10 @@ def upload_avatar(
         profile = _get_or_create_profile()
 
         if profile.avatar_filename:
-            old_path = UPLOAD_DIR / profile.avatar_filename
-            if old_path.exists():
-                old_path.unlink()
+            storage.delete(profile.avatar_filename)
 
         filename = f"{uuid.uuid4()}{ext}"
-        dest = UPLOAD_DIR / filename
-        UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-        with dest.open("wb") as f:
-            shutil.copyfileobj(file.file, f)
+        storage.upload(file, filename)
 
         profile.avatar_filename = filename
         profile.save()

@@ -21,8 +21,8 @@ export async function api(path, opts = {}) {
   return res
 }
 
-export function imgUrl(filename) {
-  return filename ? `/uploads/${filename}` : null
+export function imgUrl(url) {
+  return url || null
 }
 
 export function formatDate(iso) {

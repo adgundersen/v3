@@ -1,10 +1,10 @@
 import uuid
-import shutil
 from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
 
+import storage
 from database import db
 from models import Post, PostImage, Tag, PostTag
 from schemas import PostCreate, PostUpdate, PostRead, ReorderImages
@@ -12,7 +12,6 @@ from auth import get_current_user
 
 router = APIRouter(prefix="/api/posts", tags=["posts"])
 
-UPLOAD_DIR = Path(__file__).parent.parent / "static" / "uploads"
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 
 
@@ -36,7 +35,10 @@ def _serialize_post(post_id: int) -> dict:
         "location": post.location,
         "published": post.published,
         "created_at": post.created_at,
-        "images": [{"id": img.id, "filename": img.filename, "order": img.order} for img in images],
+        "images": [
+            {"id": img.id, "filename": img.filename, "url": storage.public_url(img.filename), "order": img.order}
+            for img in images
+        ],
         "tags": [{"id": tag.id, "name": tag.name} for tag in tags],
     }
 
@@ -75,7 +77,12 @@ def _batch_serialize(posts: list[Post]) -> list[dict]:
 
     img_map: dict[int, list] = {pid: [] for pid in ids}
     for img in imgs:
-        img_map[img.post_id].append({"id": img.id, "filename": img.filename, "order": img.order})
+        img_map[img.post_id].append({
+            "id": img.id,
+            "filename": img.filename,
+            "url": storage.public_url(img.filename),
+            "order": img.order,
+        })
 
     tag_map: dict[int, list] = {pid: [] for pid in ids}
     for pt in pts:
@@ -182,9 +189,7 @@ def delete_post(
     with db.connection_context():
         post = _get_post_or_404(post_id)
         for img in PostImage.select().where(PostImage.post == post_id):
-            path = UPLOAD_DIR / img.filename
-            if path.exists():
-                path.unlink()
+            storage.delete(img.filename)
         post.delete_instance(recursive=True)
 
 
@@ -201,15 +206,12 @@ def upload_images(
         existing = list(PostImage.select().where(PostImage.post == post_id).order_by(PostImage.order))
         next_order = max((img.order for img in existing), default=-1) + 1
 
-        UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
         for file in files:
             ext = Path(file.filename).suffix.lower()
             if ext not in ALLOWED_EXTENSIONS:
                 raise HTTPException(status_code=400, detail=f"File type {ext!r} not allowed")
             filename = f"{uuid.uuid4()}{ext}"
-            dest = UPLOAD_DIR / filename
-            with dest.open("wb") as f:
-                shutil.copyfileobj(file.file, f)
+            storage.upload(file, filename)
             PostImage.create(post=post_id, filename=filename, order=next_order)
             next_order += 1
 
@@ -227,9 +229,7 @@ def delete_image(
         img = PostImage.get_or_none(PostImage.id == image_id, PostImage.post == post_id)
         if img is None:
             raise HTTPException(status_code=404, detail="Image not found")
-        path = UPLOAD_DIR / img.filename
-        if path.exists():
-            path.unlink()
+        storage.delete(img.filename)
         img.delete_instance()
         return _serialize_post(post_id)
 

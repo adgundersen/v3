@@ -15,6 +15,7 @@ class ProfileRead(BaseModel):
     name: str
     bio: str
     avatar_filename: Optional[str]
+    avatar_url: Optional[str]
     links: list[LinkItem]
 
     model_config = {"from_attributes": True}
@@ -40,6 +41,7 @@ class TagRead(BaseModel):
 class PostImageRead(BaseModel):
     id: int
     filename: str
+    url: str
     order: int
 
     model_config = {"from_attributes": True}
